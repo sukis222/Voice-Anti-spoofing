@@ -1,5 +1,7 @@
-from src.model.baseline_model import BaselineModel
+from src.model.baseline_model import LCNN, LogMelspec, MFM
 
 __all__ = [
-    "BaselineModel",
+    "LCNN",
+    "LogMelspec",
+    "MFM"
 ]

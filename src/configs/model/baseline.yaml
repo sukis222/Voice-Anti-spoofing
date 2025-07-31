@@ -1,4 +1,11 @@
-_target_: src.model.BaselineModel
-n_feats: 1024
-fc_hidden: 512
-n_class: 10
+_target_: src.model.LCNN
+input_channels: 1
+hidden_channels: 64
+output_size: 2
+flatten_size: 96256
+sample_rate: 16000
+n_mels: 64
+dropout: 0.75
+
+
+
