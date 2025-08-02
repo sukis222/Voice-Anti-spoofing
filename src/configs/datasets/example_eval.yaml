@@ -1,14 +1,15 @@
 val:
-  _target_: src.datasets.ExampleDataset
-  input_length: 1024
-  dataset_length: 15
-  n_classes: 10
-  name: "val"
-  instance_transforms: ${transforms.instance_transforms.inference}
+  _target_: src.datasets.ASVSpoofDataset
+  asv_root_path: "D:/Downloads"
+  asv_protocol_path: "D:/Downloads/LA/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt"
+  access_type: "LA"
+  stage: "dev"
+  #instance_transforms: ${transforms.instance_transforms.inference}
+
 test:
-  _target_: src.datasets.ExampleDataset
-  input_length: 1024
-  dataset_length: 15
-  n_classes: 10
-  name: "test"
-  instance_transforms: ${transforms.instance_transforms.inference}
+  _target_: src.datasets.ASVSpoofDataset
+  asv_root_path: "D:/Downloads"
+  asv_protocol_path: "D:/Downloads/LA/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt"
+  access_type: "LA"
+  stage: "eval"
+  #instance_transforms: ${transforms.instance_transforms.inference}

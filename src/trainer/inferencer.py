@@ -2,6 +2,7 @@ import torch
 from tqdm.auto import tqdm
 
 from src.metrics.tracker import MetricTracker
+
 from src.trainer.base_trainer import BaseTrainer
 
 

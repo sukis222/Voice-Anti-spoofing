@@ -7,6 +7,7 @@ from tqdm.auto import tqdm
 
 from src.datasets.data_utils import inf_loop
 from src.metrics.tracker import MetricTracker
+from src.metrics.eer_metrics import EERMetric
 from src.utils.io_utils import ROOT_PATH
 
 
@@ -263,14 +264,15 @@ class BaseTrainer:
         self.is_train = False
         self.model.eval()
         self.evaluation_metrics.reset()
+
         with torch.no_grad():
             for batch_idx, batch in tqdm(
-                enumerate(dataloader),
-                desc=part,
-                total=len(dataloader),
+                    enumerate(dataloader),
+                    desc=part,
+                    total=len(dataloader),
             ):
                 batch = self.process_batch(
-                    batch,
+                    batch=batch,  # Убрали part, сохранили batch и metrics
                     metrics=self.evaluation_metrics,
                 )
             self.writer.set_step(epoch * self.epoch_len, part)

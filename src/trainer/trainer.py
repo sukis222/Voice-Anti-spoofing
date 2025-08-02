@@ -7,20 +7,16 @@ class Trainer(BaseTrainer):
     Trainer class. Defines the logic of batch logging and processing.
     """
 
-    def process_batch(self, batch, metrics: MetricTracker):
+    def process_batch(self, batch, metrics):
         """
         Run batch through the model, compute metrics, compute loss,
         and do training step (during training stage).
 
-        The function expects that criterion aggregates all losses
-        (if there are many) into a single one defined in the 'loss' key.
-
         Args:
-            batch (dict): dict-based batch containing the data from
-                the dataloader.
+            batch_idx (int): Index of the current batch.
+            batch (dict): dict-based batch containing the data from the dataloader.
             metrics (MetricTracker): MetricTracker object that computes
-                and aggregates the metrics. The metrics depend on the type of
-                the partition (train or inference).
+                and aggregates the metrics.
         Returns:
             batch (dict): dict-based batch containing the data from
                 the dataloader (possibly transformed via batch transform),
@@ -35,6 +31,7 @@ class Trainer(BaseTrainer):
             self.optimizer.zero_grad()
 
         outputs = self.model(**batch)
+        batch["logits"] = outputs["outputs"]
         batch.update(outputs)
 
         all_losses = self.criterion(**batch)
@@ -47,13 +44,14 @@ class Trainer(BaseTrainer):
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
 
-        # update metrics for each loss (in case of multiple losses)
+        # update metrics for each loss
         for loss_name in self.config.writer.loss_names:
             metrics.update(loss_name, batch[loss_name].item())
 
         for met in metric_funcs:
             metrics.update(met.name, met(**batch))
         return batch
+
 
     def _log_batch(self, batch_idx, batch, mode="train"):
         """
