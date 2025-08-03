@@ -1,5 +1,5 @@
 from abc import abstractmethod
-
+import wandb
 import torch
 from numpy import inf
 from torch.nn.utils import clip_grad_norm_
@@ -84,7 +84,7 @@ class BaseTrainer:
             self.epoch_len = epoch_len
 
         self.evaluation_dataloaders = {
-            k: v for k, v in dataloaders.items() if k != "train"
+            k: v for k, v in dataloaders.items() if k == "test"
         }
 
         # define epochs
@@ -253,13 +253,6 @@ class BaseTrainer:
     def _evaluation_epoch(self, epoch, part, dataloader):
         """
         Evaluate model on the partition after training for an epoch.
-
-        Args:
-            epoch (int): current training epoch.
-            part (str): partition to evaluate on
-            dataloader (DataLoader): dataloader for the partition.
-        Returns:
-            logs (dict): logs that contain the information about evaluation.
         """
         self.is_train = False
         self.model.eval()
@@ -272,16 +265,28 @@ class BaseTrainer:
                     total=len(dataloader),
             ):
                 batch = self.process_batch(
-                    batch=batch,  # Убрали part, сохранили batch и metrics
+                    batch=batch,
                     metrics=self.evaluation_metrics,
                 )
-            self.writer.set_step(epoch * self.epoch_len, part)
-            self._log_scalars(self.evaluation_metrics)
-            self._log_batch(
-                batch_idx, batch, part
-            )  # log only the last batch during inference
 
-        return self.evaluation_metrics.result()
+        logs = self.evaluation_metrics.result()
+
+        for metric_obj in self.metrics["inference"]:
+            if hasattr(metric_obj, 'result') and callable(metric_obj.result):
+                logs[metric_obj.name] = metric_obj.result()
+
+
+        self.writer.set_step(epoch * self.epoch_len, part)
+
+
+        for name, value in logs.items():
+            self.writer.add_scalar(name, value)
+
+        self._log_batch(
+            batch_idx, batch, part
+        )
+        #print(f"{part} logs:", logs)
+        return logs
 
     def _monitor_performance(self, logs, not_improved_count):
         """
@@ -367,7 +372,8 @@ class BaseTrainer:
         """
         # do batch transforms on device
         transform_type = "train" if self.is_train else "inference"
-        transforms = self.batch_transforms.get(transform_type)
+        #transforms = self.batch_transforms.get(transform_type)
+        transforms = None
         if transforms is not None:
             for transform_name in transforms.keys():
                 batch[transform_name] = transforms[transform_name](

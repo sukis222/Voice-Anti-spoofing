@@ -1,15 +1,16 @@
 val:
   _target_: src.datasets.ASVSpoofDataset
-  asv_root_path: "D:/Downloads"
-  asv_protocol_path: "D:/Downloads/LA/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt"
+  asv_root_path: "/kaggle/input/asvpoof-2019-dataset"
+  asv_protocol_path: "/kaggle/input/asvpoof-2019-dataset/LA/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt"
   access_type: "LA"
   stage: "dev"
   #instance_transforms: ${transforms.instance_transforms.inference}
 
+
 test:
   _target_: src.datasets.ASVSpoofDataset
-  asv_root_path: "D:/Downloads"
-  asv_protocol_path: "D:/Downloads/LA/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt"
+  asv_root_path: "/kaggle/input/asvpoof-2019-dataset"
+  asv_protocol_path: "/kaggle/input/asvpoof-2019-dataset/LA/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt"
   access_type: "LA"
   stage: "eval"
   #instance_transforms: ${transforms.instance_transforms.inference}
