@@ -18,13 +18,13 @@ def collate_fn(dataset_items: list[dict]):
     labels = []
 
     for el in dataset_items:
-        if el['data_object'].squeeze().shape[0] > 60000:
-            wavs.append(el['data_object'].squeeze()[:60000])
+        if el['data_object'].squeeze().shape[0] > 100000:
+            wavs.append(el['data_object'].squeeze()[:100000])
         else:
             wavs.append(el['data_object'].squeeze())
         labels.append(el['label'])
 
-    x = 60000 - wavs[0].shape[0]
+    x = 100000 - wavs[0].shape[0]
     wavs[0] = torch.nn.functional.pad(wavs[0], (0, x))
 
     wavs = pad_sequence(wavs, batch_first=True)

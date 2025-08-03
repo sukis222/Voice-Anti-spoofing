@@ -17,15 +17,15 @@ class LogMelspec(nn.Module):
                 n_mels=self.n_mels
         )
 
-        #self.spec_augs = nn.Sequential(
-        #        torchaudio.transforms.FrequencyMasking(freq_mask_param=15),
-        #        torchaudio.transforms.TimeMasking(time_mask_param=35),
-        #)
+        self.spec_augs = nn.Sequential(
+                torchaudio.transforms.FrequencyMasking(freq_mask_param=15),
+                torchaudio.transforms.TimeMasking(time_mask_param=35),
+        )
 
     def __call__(self, batch):
         x = torch.log(self.melspec(batch).clamp_(min=1e-9, max=1e9))
-        #if self.training:
-        #    x = self.spec_augs(x)
+        if self.training:
+            x = self.spec_augs(x)
         return x
 
 
@@ -43,6 +43,23 @@ class MFM(nn.Module):
     def forward(self, in_features):
         out_tensor = torch.max(in_features[:, :self.in_channels//2, :, :], in_features[:, self.in_channels//2:, :, :])
         return out_tensor
+
+
+class MFM2(nn.Module):
+    """
+    Max-Featured-Map activation
+    """
+    def __init__(self, in_channels):
+        super().__init__()
+        self.in_channels = in_channels
+
+        if self.in_channels % 2 != 0:
+            raise ValueError("amount of channels for MFM must be an even number.")
+
+    def forward(self, in_features):
+        out_tensor = torch.max(in_features[:, :self.in_channels//2], in_features[:, self.in_channels//2:])
+        return out_tensor
+
 
 
 class Conv_block1(nn.Module):
@@ -84,15 +101,19 @@ class LCNN(nn.Module):
 
         self.lcnn = Sequential(
             Conv_block1(input_channels, hidden_channels, dropout),
-            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
+            nn.MaxPool2d(kernel_size=(3, 3), stride=(3, 3)),
             Conv_block1(hidden_channels, hidden_channels, dropout),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
             Conv_block2(hidden_channels, hidden_channels, dropout),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
             Conv_block2(hidden_channels, hidden_channels, dropout),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
+            Conv_block2(hidden_channels, hidden_channels, dropout),
+            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
             nn.Flatten(),
-            nn.Linear(flatten_size, output_size),
+            nn.Linear(flatten_size, flatten_size//2),
+            MFM2(flatten_size//2),
+            nn.Linear(flatten_size//4, output_size),
         )
 
     def forward(self, data_object, *args, **kwargs):

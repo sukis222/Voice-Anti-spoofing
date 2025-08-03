@@ -2,9 +2,9 @@ _target_: src.model.LCNN
 input_channels: 1
 hidden_channels: 64
 output_size: 2
-flatten_size: 2816
+flatten_size: 704
 sample_rate: 16000
-n_mels: 64
+n_mels: 128
 dropout: 0.75
 
 

@@ -71,4 +71,4 @@ class EERMetric(BaseMetric):
             eer, _ = compute_eer(self.bonafide_scores[:, 0], self.spoofed_scores[:, 0])
         self.bonafide_scores = np.empty((0, 1))
         self.spoofed_scores = np.empty((0, 1))
-        return eer
+        return 1 - eer
