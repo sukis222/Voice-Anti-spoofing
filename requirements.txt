@@ -1,14 +1,18 @@
-torch==2.2.0
-torchvision==0.17.0
+torch==2.2.2
+torchaudio==2.2.2
+torchvision==0.17.2
 torchmetrics
 numpy==1.26.4
-tqdm
-matplotlib
-pandas
+tqdm~=4.67.1
+matplotlib~=3.10.3
+pandas~=2.3.1
 wandb
 comet_ml
-hydra-core
+hydra-core~=1.3.2
 
 black
 isort
 pre-commit
+
+omegaconf~=2.3.0
+pillow~=11.0.0

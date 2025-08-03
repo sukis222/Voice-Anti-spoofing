@@ -18,9 +18,9 @@ loss_function:
   _target_: src.loss.ASoftmax
 
 trainer:
-  log_step: 50
+  log_step: 5
   n_epochs: 100
-  epoch_len: 2
+  epoch_len: 10
   device_tensors: ["data_object", "labels"] # which tensors should be on device (ex. GPU)
   resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
   device: auto # device name or "auto"
