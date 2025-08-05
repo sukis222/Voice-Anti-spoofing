@@ -17,15 +17,9 @@ class LogMelspec(nn.Module):
                 n_mels=self.n_mels
         )
 
-        self.spec_augs = nn.Sequential(
-                torchaudio.transforms.FrequencyMasking(freq_mask_param=15),
-                torchaudio.transforms.TimeMasking(time_mask_param=35),
-        )
 
     def __call__(self, batch):
         x = torch.log(self.melspec(batch).clamp_(min=1e-9, max=1e9))
-        if self.training:
-            x = self.spec_augs(x)
         return x
 
 
@@ -45,7 +39,7 @@ class MFM(nn.Module):
         return out_tensor
 
 
-class MFM2(nn.Module):
+class MFM1d(nn.Module):
     """
     Max-Featured-Map activation
     """
@@ -62,28 +56,12 @@ class MFM2(nn.Module):
 
 
 
-class Conv_block1(nn.Module):
-    def __init__(self, input_channels, output_channels, dropout):
+class Conv_block(nn.Module):
+    def __init__(self, input_channels, output_channels, kernel_size):
         super().__init__()
         self.block = Sequential(
-            nn.Conv2d(input_channels, output_channels*2, kernel_size=(6,6), stride=1, padding=1),
+            nn.Conv2d(input_channels, output_channels*2, kernel_size=(kernel_size, kernel_size), stride=1, padding=1),
             MFM(output_channels*2),
-            nn.BatchNorm2d(output_channels),
-            nn.Dropout(dropout)
-        )
-
-    def forward(self, data_object):
-        return self.block(data_object)
-
-
-class Conv_block2(nn.Module):
-    def __init__(self, input_channels, output_channels, dropout):
-        super().__init__()
-        self.block = Sequential(
-            nn.Conv2d(input_channels, output_channels*2, kernel_size=(4,4), stride=1, padding=1),
-            MFM(output_channels*2),
-            nn.BatchNorm2d(output_channels),
-            nn.Dropout(dropout)
         )
 
     def forward(self, data_object):
@@ -94,26 +72,47 @@ class LCNN(nn.Module):
     """
     LCNN
     """
-    def __init__(self, input_channels, hidden_channels, output_size, flatten_size, sample_rate, n_mels, dropout):
+    def __init__(self, sample_rate, n_mels, dropout):
         super().__init__()
 
         self.mel_spec = LogMelspec(sample_rate, n_mels)
 
         self.lcnn = Sequential(
-            Conv_block1(input_channels, hidden_channels, dropout),
-            nn.MaxPool2d(kernel_size=(3, 3), stride=(3, 3)),
-            Conv_block1(hidden_channels, hidden_channels, dropout),
+            Conv_block(1, 32, 5),
+
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
-            Conv_block2(hidden_channels, hidden_channels, dropout),
+
+            Conv_block(32, 32, 1),
+            nn.BatchNorm2d(32),
+            Conv_block(32, 48, 3),
+
+
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
-            Conv_block2(hidden_channels, hidden_channels, dropout),
+            nn.BatchNorm2d(48),
+
+            Conv_block(48, 48, 1),
+            nn.BatchNorm2d(48),
+            Conv_block(48, 64, 3),
+
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
-            Conv_block2(hidden_channels, hidden_channels, dropout),
+
+            Conv_block(64, 64, 1),
+            nn.BatchNorm2d(64),
+            Conv_block(64, 32, 3),
+            nn.BatchNorm2d(32),
+            Conv_block(32, 32, 1),
+            nn.BatchNorm2d(32),
+            Conv_block(32, 32, 3),
+
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
+
             nn.Flatten(),
-            nn.Linear(flatten_size, flatten_size//2),
-            MFM2(flatten_size//2),
-            nn.Linear(flatten_size//4, output_size),
+            nn.Linear(13120, 160),
+            MFM1d(160),
+            nn.Dropout(dropout),
+            nn.BatchNorm1d(80),
+
+            nn.Linear(80, 2),
         )
 
     def forward(self, data_object, *args, **kwargs):

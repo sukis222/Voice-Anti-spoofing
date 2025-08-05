@@ -39,8 +39,8 @@ class EERMetric(BaseMetric):
         if device == "auto":
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = device
-        self.bonafide_scores = np.empty((0, 1))  # Для класса 0 (bonafide)
-        self.spoofed_scores = np.empty((0, 1))   # Для класса 1 (spoofed)
+        self.bonafide_scores = np.empty((0, 1))
+        self.spoofed_scores = np.empty((0, 1))
 
     def __call__(self, logits: torch.Tensor, labels: torch.Tensor, **kwargs):
         """
