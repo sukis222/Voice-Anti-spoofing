@@ -109,8 +109,8 @@ class LCNN(nn.Module):
             nn.Flatten(),
             nn.Linear(13120, 160),
             MFM1d(160),
-            nn.Dropout(dropout),
             nn.BatchNorm1d(80),
+            nn.Dropout(dropout),
 
             nn.Linear(80, 2),
         )
