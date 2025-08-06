@@ -2,7 +2,7 @@ defaults:
   - model: baseline
   - metrics: metrix_list
   - datasets: example_eval # we do not want to run inference on training data
-  - dataloader: example
+  - dataloader: loader
   - transforms: example
   - _self_
 inferencer:

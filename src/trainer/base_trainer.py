@@ -1,5 +1,4 @@
 from abc import abstractmethod
-import wandb
 import torch
 from numpy import inf
 from torch.nn.utils import clip_grad_norm_
@@ -9,7 +8,6 @@ import os
 
 from src.datasets.data_utils import inf_loop
 from src.metrics.tracker import MetricTracker
-from src.metrics.eer_metrics import EERMetric
 from src.utils.io_utils import ROOT_PATH
 
 
@@ -255,19 +253,15 @@ class BaseTrainer:
     def _evaluation_epoch(self, epoch, part, dataloader):
         """
         Evaluate model on the partition after training for an epoch.
+        Save all outputs for err computing
         """
         self.is_train = False
         self.model.eval()
         self.evaluation_metrics.reset()
 
-        #
-        submission_results = []# Заранее получаем все пути из датасета, так как в батче их нет
-        all_paths = [item['path'] for item in dataloader.dataset._index] # <--- ВОТ ЭТА СТРОКА
+        submission_results = []
+        all_paths = [item['path'] for item in dataloader.dataset._index]
         processed_samples = 0
-
-        self.logger.info(f"Submission generation is enabled for '{part}' partition.")
-        self.logger.info(f"Submission generation is enabled for '{part}' partition.")
-        #
 
         with torch.no_grad():
             for batch_idx, batch in tqdm(
@@ -279,18 +273,16 @@ class BaseTrainer:
                     batch=batch,
                     metrics=self.evaluation_metrics,
                 )
-                #
+
                 scores = batch['logits']
                 batch_size = scores.shape[0]
                 bonafide_scores = scores[:, 1].cpu().numpy()
-                audio_paths = all_paths[processed_samples: processed_samples + batch_size]  # <--- И ВОТ ЭТА
+                audio_paths = all_paths[processed_samples: processed_samples + batch_size]
                 processed_samples += batch_size
-
 
                 for path, score in zip(audio_paths, bonafide_scores):
                     key = os.path.basename(path).split('.')[0]
                     submission_results.append({"key": key, "score": score})
-                #
 
         logs = self.evaluation_metrics.result()
 
@@ -309,13 +301,12 @@ class BaseTrainer:
             batch_idx, batch, part
         )
 
-        submission_df = pd.DataFrame(submission_results)
-        # Имя файла можно сделать настраиваемым через конфиг
-        output_csv_path = f"submission_epoch_{epoch}.csv"
-        self.logger.info(f"Saving submission file to '{output_csv_path}'...")
-        submission_df.to_csv(output_csv_path, index=False, header=False)
-        self.logger.info("Submission file saved successfully.")
-        #print(f"{part} logs:", logs)
+        eval_outputs = pd.DataFrame(submission_results)
+
+        output_csv_path = f"eval_outputs_epoch_{epoch}.csv"
+        self.logger.info(f"Saving outputs to '{output_csv_path}'...")
+        eval_outputs.to_csv(output_csv_path, index=False, header=False)
+
         return logs
 
     def _monitor_performance(self, logs, not_improved_count):

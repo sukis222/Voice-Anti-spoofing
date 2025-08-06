@@ -1,13 +1,7 @@
 import logging
 from typing import List, Dict
 from pathlib import Path
-
-import torch
 import torchaudio
-import numpy as np
-from tqdm.auto import tqdm
-from src.utils.io_utils import ROOT_PATH, read_json, write_json
-
 
 from .base_dataset import BaseDataset
 

@@ -1,7 +1,4 @@
 import torch
-import sys
-import os
-
 import numpy as np
 
 from .calculate_eer import compute_eer
@@ -37,13 +34,10 @@ class EERMetric(BaseMetric):
         self.bonafide_scores = np.concatenate([self.bonafide_scores, bonafide_batch])
         self.spoofed_scores = np.concatenate([self.spoofed_scores, spoofed_batch])
 
-        return 0.0  # Возвращаем заглушку для MetricTracker
+        return 0.0
 
     def result(self):
-        if len(self.bonafide_scores) == 0 or len(self.spoofed_scores) == 0:
-            eer = 1.0
-        else:
-            eer, _ = compute_eer(self.bonafide_scores[:, 0], self.spoofed_scores[:, 0])
+        eer, _ = compute_eer(self.bonafide_scores[:, 0], self.spoofed_scores[:, 0])
         self.bonafide_scores = np.empty((0, 1))
         self.spoofed_scores = np.empty((0, 1))
         return eer
