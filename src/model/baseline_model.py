@@ -16,16 +16,11 @@ class LogMelspec(nn.Module):
                 hop_length=160,
                 n_mels=self.n_mels
         )
-        self.spec_augs = nn.Sequential(
-            torchaudio.transforms.FrequencyMasking(freq_mask_param=15),
-            torchaudio.transforms.TimeMasking(time_mask_param=35),
-        )
 
 
     def __call__(self, batch):
         x = torch.log(self.melspec(batch).clamp_(min=1e-9, max=1e9))
-        if self.training:
-            x = self.spec_augs(x)
+
         return x
 
 

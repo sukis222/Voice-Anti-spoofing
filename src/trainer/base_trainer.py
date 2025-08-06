@@ -4,6 +4,8 @@ import torch
 from numpy import inf
 from torch.nn.utils import clip_grad_norm_
 from tqdm.auto import tqdm
+import pandas as pd
+import os
 
 from src.datasets.data_utils import inf_loop
 from src.metrics.tracker import MetricTracker
@@ -258,6 +260,15 @@ class BaseTrainer:
         self.model.eval()
         self.evaluation_metrics.reset()
 
+        #
+        submission_results = []# Заранее получаем все пути из датасета, так как в батче их нет
+        all_paths = [item['path'] for item in dataloader.dataset._index] # <--- ВОТ ЭТА СТРОКА
+        processed_samples = 0
+
+        self.logger.info(f"Submission generation is enabled for '{part}' partition.")
+        self.logger.info(f"Submission generation is enabled for '{part}' partition.")
+        #
+
         with torch.no_grad():
             for batch_idx, batch in tqdm(
                     enumerate(dataloader),
@@ -268,6 +279,18 @@ class BaseTrainer:
                     batch=batch,
                     metrics=self.evaluation_metrics,
                 )
+                #
+                scores = batch['logits']
+                batch_size = scores.shape[0]
+                bonafide_scores = scores[:, 1].cpu().numpy()
+                audio_paths = all_paths[processed_samples: processed_samples + batch_size]  # <--- И ВОТ ЭТА
+                processed_samples += batch_size
+
+
+                for path, score in zip(audio_paths, bonafide_scores):
+                    key = os.path.basename(path).split('.')[0]
+                    submission_results.append({"key": key, "score": score})
+                #
 
         logs = self.evaluation_metrics.result()
 
@@ -285,6 +308,13 @@ class BaseTrainer:
         self._log_batch(
             batch_idx, batch, part
         )
+
+        submission_df = pd.DataFrame(submission_results)
+        # Имя файла можно сделать настраиваемым через конфиг
+        output_csv_path = f"submission_epoch_{epoch}.csv"
+        self.logger.info(f"Saving submission file to '{output_csv_path}'...")
+        submission_df.to_csv(output_csv_path, index=False, header=False)
+        self.logger.info("Submission file saved successfully.")
         #print(f"{part} logs:", logs)
         return logs
 
