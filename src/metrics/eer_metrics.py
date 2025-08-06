@@ -6,33 +6,8 @@ import numpy as np
 
 from .calculate_eer import compute_eer
 from src.metrics.base_metric import BaseMetric
-'''
-class EERMetric(BaseMetric):
-    def __init__(self, device, *args, **kwargs):
-        
-        super().__init__(*args, **kwargs)
-        if device == "auto":
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.bonafide_scores = []
-        self.other_scores = []
 
-    def __call__(self, logits: torch.Tensor, labels: torch.Tensor, **kwargs):
-        
 
-        logits_np = logits.detach().cpu().numpy()
-        labels_np = labels.detach().cpu().numpy()
-
-        for i in range(len(labels_np)):
-            if labels_np[i] == 0:
-                self.bonafide_scores.append(logits_np[i])
-            else:
-                self.other_scores.append(logits_np[i])
-
-        eer, threshold = compute_eer(self. bonafide_scores, other_scores)
-
-        return eer
-
-'''
 class EERMetric(BaseMetric):
     def __init__(self, device, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,7 +30,7 @@ class EERMetric(BaseMetric):
         logits_np = logits.detach().cpu().numpy()
         labels_np = labels.detach().cpu().numpy()
 
-        mask = labels_np == 0
+        mask = labels_np == 1
         bonafide_batch = logits_np[mask, 1:2]
         spoofed_batch = logits_np[~mask, 1:2]
 
@@ -71,4 +46,4 @@ class EERMetric(BaseMetric):
             eer, _ = compute_eer(self.bonafide_scores[:, 0], self.spoofed_scores[:, 0])
         self.bonafide_scores = np.empty((0, 1))
         self.spoofed_scores = np.empty((0, 1))
-        return 1 - eer
+        return eer

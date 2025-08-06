@@ -48,9 +48,9 @@ class ASVSpoofDataset(BaseDataset):
                 id = split_line[1]
                 label_str = split_line[4]
                 if label_str == "bonafide":
-                    label = 0
-                else:
                     label = 1
+                else:
+                    label = 0
 
                 key_path = self.asv_root_path / self.access_type / self.access_type / f"ASVspoof2019_{self.access_type}_{self.stage}" / "flac" / f"{id}.flac"
 
