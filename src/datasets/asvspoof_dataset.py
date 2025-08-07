@@ -11,18 +11,13 @@ logger = logging.getLogger(__name__)
 class ASVSpoofDataset(BaseDataset):
     """
     Base class for the datasets.
-
-    Given a proper index (list[dict]), allows to process different datasets
-    for the same task in the identical manner. Therefore, to work with
-    several datasets, the user only have to define index in a nested class.
     """
-
     def __init__(
             self,
             asv_root_path: str,
             asv_protocol_path: str,
-            access_type: str,  # 'LA' or 'PA'
-            stage: str,  # 'train', 'dev', 'eval'
+            access_type: str,
+            stage: str,
             *args,
             **kwargs,
     ):
@@ -34,7 +29,10 @@ class ASVSpoofDataset(BaseDataset):
         index = self.create_index()
         super().__init__(index, *args, **kwargs)
 
-    def create_index(self) -> List[Dict]:
+    def create_index(self):
+        """
+        Creating list of dicts for loading data
+        """
         index = []
         with open(self.asv_protocol_path, 'r') as protocol:
             for line in protocol:

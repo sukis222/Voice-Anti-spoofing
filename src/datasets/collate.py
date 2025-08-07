@@ -11,7 +11,7 @@ def collate_fn(dataset_items: list[dict]):
         dataset_items (list[dict]): list of objects from
             dataset.__getitem__.
     Returns:
-        result_batch (dict[Tensor]): dict, containing batch-version
+        (dict[Tensor]): dict, containing batch-version
             of the tensors.
     """
     wavs = []
@@ -29,6 +29,7 @@ def collate_fn(dataset_items: list[dict]):
 
     wavs = pad_sequence(wavs, batch_first=True)
     labels = torch.Tensor(labels).long()
+
     return {
         "data_object": wavs,
         "labels": labels

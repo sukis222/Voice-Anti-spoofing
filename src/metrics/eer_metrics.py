@@ -16,13 +16,11 @@ class EERMetric(BaseMetric):
 
     def __call__(self, logits: torch.Tensor, labels: torch.Tensor, **kwargs):
         """
-        Metric calculation logic. Accumulates scores for EER calculation.
+        Accumulates scores for EER calculation.
 
         Args:
-            logits (Tensor): model output predictions, shape (batch_size, num_classes).
-            labels (Tensor): ground-truth labels, shape (batch_size,).
-        Returns:
-            float: Placeholder value (0.0) as EER is computed in result().
+            logits (Tensor): model output predictions
+            labels (Tensor): ground-truth labels
         """
         logits_np = logits.detach().cpu().numpy()
         labels_np = labels.detach().cpu().numpy()
@@ -37,6 +35,10 @@ class EERMetric(BaseMetric):
         return 0.0
 
     def result(self):
+        """
+        Returns:
+            eer (float): final eer
+        """
         eer, _ = compute_eer(self.bonafide_scores[:, 0], self.spoofed_scores[:, 0])
         self.bonafide_scores = np.empty((0, 1))
         self.spoofed_scores = np.empty((0, 1))

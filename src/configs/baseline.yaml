@@ -9,7 +9,7 @@ defaults:
 optimizer:
   _target_: torch.optim.AdamW
   lr: 3e-4
-  weight_decay: 0.02
+  weight_decay: 0.05
 lr_scheduler:
   _target_: torch.optim.lr_scheduler.StepLR
   gamma: 0.9
@@ -18,9 +18,9 @@ loss_function:
   _target_: src.loss.ASoftmax
 
 trainer:
-  log_step: 100
-  n_epochs: 20
-  epoch_len: 700
+  log_step: 50
+  n_epochs: 50
+  epoch_len: 395
   device_tensors: ["data_object", "labels"] # which tensors should be on device (ex. GPU)
   resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
   device: auto # device name or "auto"

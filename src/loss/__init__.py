@@ -1,1 +1,1 @@
-from src.loss.asoftmax import ASoftmax
+from src.loss.CrossEntropy import CrossEntropy
